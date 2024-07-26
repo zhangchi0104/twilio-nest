@@ -1,10 +1,14 @@
 import { Body, Controller, Get, Post, Put } from '@nestjs/common';
 import { AppService } from './app.service';
 import { DiaRequestDto } from './app.dto';
+import { TwilioService } from './twilio/twilio.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly twilioService: TwilioService,
+  ) {}
 
   @Get()
   getHello(): string {
@@ -23,9 +27,9 @@ export class AppController {
     return '';
   }
 
-  @Put('dial')
-  dial(@Body() dto: DiaRequestDto): string {
-    console.log('dto', dto);
-    return '';
+  @Post('dial')
+  async dial(@Body() dto: DiaRequestDto) {
+    const { phoneNumber, languageCode } = dto;
+    return await this.twilioService.makeCall(phoneNumber, languageCode);
   }
 }
