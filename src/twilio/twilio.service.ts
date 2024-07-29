@@ -25,7 +25,7 @@ export class TwilioService {
   ) {
     const response = new VoiceResposne();
     response.say(
-      'Hello Alex, this is a call from everyoung AI. You can answer your question after the beep. How are you today?',
+      'Hello Alex, this is a call from ever young AI. You can answer your question after the beep. How are you today?',
     );
     response.record({
       timeout: 5,
@@ -54,7 +54,10 @@ export class TwilioService {
     // Poll for the recording to be ready
     // TODO: improve this with recording status callback
     while (recordingPromise.status !== 200) {
-      console.log('[handleRecordingCompleted]', recordingPromise.status);
+      console.log(
+        '[TwilioService::handleRecordingCompleted] Recording File Status',
+        recordingPromise.status,
+      );
       await this.sleepAsync(200);
       recordingPromise = await fetch(recordingUrl, {
         headers: {
@@ -62,12 +65,12 @@ export class TwilioService {
         },
       });
     }
-    console.time('whisper-transcription');
+    console.time('[Time] whisper-transcription');
     const transcription = await this.openai.audio.transcriptions.create({
       file: await toFile(recordingPromise, 'recording.wav'),
       model: 'whisper-1',
     });
-    console.timeEnd('whisper-transcription');
+    console.timeEnd('[Time] whisper-transcription');
     const history: ChatCompletionMessageParam[] = state.chatHistory
       ? [...state.chatHistory, { role: 'user', content: transcription.text }]
       : [
@@ -80,12 +83,12 @@ export class TwilioService {
             content: transcription.text,
           },
         ];
-    console.time('openai-chat-completion');
+    console.time('[Time] openai-chat-completion');
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: history,
     });
-    console.timeEnd('openai-chat-completion');
+    console.timeEnd('[Time] openai-chat-completion');
     const gptMsg = response.choices[0]
       .message satisfies ChatCompletionMessageParam;
     history.push(gptMsg);

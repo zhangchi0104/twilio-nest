@@ -23,8 +23,8 @@ export class AppController {
     @Param('id') sessionId: string,
     @Body() dto: RecordingActionDto,
   ) {
-    console.log('[recordingCompleted]', dto.RecordingUrl);
-    console.log('[recordingCompleted]', sessionId);
+    console.log('[AppController::recordingCompleted]', dto.RecordingUrl);
+    console.log('[AppController::recordingCompleted]', sessionId);
     const allState = JSON.parse(fs.readFileSync('./state.json', 'utf-8'));
     const sessionState = allState[sessionId] as SessionState;
     const newState = await this.twilioService.handleRecodingCompleted(
@@ -50,6 +50,10 @@ export class AppController {
         action:
           process.env.TWILIO_WEBHOOK_URL + `/${sessionId}/recording-completed`,
         method: 'POST',
+        recordingStatusCallback:
+          process.env.TWILIO_WEBHOOK_URL +
+          `/${sessionId}/recording-status-changed`,
+        // recordingStatusCallbackEvent: 'completed',
       });
     }
     return voiceResponse.toString();
