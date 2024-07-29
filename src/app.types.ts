@@ -9,3 +9,9 @@ export interface SessionState {
   status: SessionStatus;
   chatHistory: ChatCompletionMessageParam[];
 }
+
+export enum LanguageCode {
+  ZH_CN = 'zh-CN',
+  en_US = 'en-US',
+  JA_JP = 'ja-JP',
+}

@@ -1,12 +1,14 @@
 import { Optional } from '@nestjs/common';
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { LanguageCode } from './app.types';
 
 export class DiaRequestDto {
   @IsNotEmpty()
   phoneNumber: string;
 
   @Optional()
-  languageCode: string = 'en-US';
+  @IsEnum(LanguageCode)
+  languageCode: LanguageCode = LanguageCode.en_US;
 }
 
 export enum CallStatus {

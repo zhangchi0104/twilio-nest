@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI, { toFile } from 'openai';
-import { SessionState, SessionStatus } from 'src/app.types';
+z;
+import { LanguageCode, SessionState, SessionStatus } from 'src/app.types';
 import twilio, { twiml, Twilio } from 'twilio';
 import { CHAT_COMPLETION_PROMPT } from './twilio.constants';
 import { ChatCompletionMessageParam } from 'openai/resources';
+import { translations } from 'src/translations';
 const VoiceResposne = twiml.VoiceResponse;
 @Injectable()
 export class TwilioService {
@@ -21,11 +23,14 @@ export class TwilioService {
   public async makeCall(
     sessionId: string,
     phoneNumber: string,
-    languageCode: string = 'en_US',
+    languageCode: LanguageCode = LanguageCode.en_US,
   ) {
     const response = new VoiceResposne();
     response.say(
-      'Hello Alex, this is a call from ever young AI. You can answer your question after the beep. How are you today?',
+      {
+        language: languageCode,
+      },
+      translations[languageCode].greeting,
     );
     response.record({
       timeout: 5,
@@ -65,6 +70,7 @@ export class TwilioService {
         },
       });
     }
+
     console.time('[Time] whisper-transcription');
     const transcription = await this.openai.audio.transcriptions.create({
       file: await toFile(recordingPromise, 'recording.wav'),
