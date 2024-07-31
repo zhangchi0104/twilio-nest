@@ -55,3 +55,10 @@ export class RecordingActionDto extends TwilioBaseReuqest {
   @IsString()
   RecordingDuration: string;
 }
+
+export class GatherActionDto {
+  @IsString()
+  SpeechResult: string;
+  @IsString()
+  Confidence: string;
+}

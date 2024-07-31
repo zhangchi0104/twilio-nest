@@ -27,19 +27,23 @@ export class TwilioService {
   ) {
     const response = new VoiceResposne();
     console.log(languageCode);
-    response.say(
+    const gather = response.gather({
+      input: ['speech'],
+      timeout: 5,
+      numDigits: 1,
+      action: process.env.TWILIO_WEBHOOK_URL + `/${sessionId}/gather-completed`,
+      language:
+        languageCode === LanguageCode.ZH_CN ? 'cmn-Hans-CN' : languageCode,
+      method: 'POST',
+      bargeIn: true,
+    });
+    gather.say(
       {
         language: languageCode,
       },
       translations[languageCode].greeting,
     );
-    response.record({
-      timeout: 5,
-      playBeep: true,
-      action:
-        process.env.TWILIO_WEBHOOK_URL + `/${sessionId}/recording-completed`,
-      method: 'POST',
-    });
+
     // response.play("....")
     return this.twlio.calls.create({
       from: process.env.TWILIO_PHONE_NUMBER!,
@@ -89,6 +93,44 @@ export class TwilioService {
           {
             role: 'user',
             content: transcription.text,
+          },
+        ];
+    console.time('[Time] openai-chat-completion');
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: history,
+    });
+    console.timeEnd('[Time] openai-chat-completion');
+    const gptMsg = response.choices[0]
+      .message satisfies ChatCompletionMessageParam;
+    history.push(gptMsg);
+    console.log(
+      '[TwilioService::handleRecordingCompleted] GPT Response',
+      gptMsg,
+    );
+    return {
+      ...state,
+      chatHistory: history,
+      nextQuestion: gptMsg.content,
+      status:
+        state.status === SessionStatus.DIALED
+          ? SessionStatus.PENDING_FOR_MORE_INFO
+          : SessionStatus.COMPLETED,
+    };
+  }
+
+  async handleGatherCompleted(state: SessionState, text: string) {
+    console.timeEnd('[Time] whisper-transcription');
+    const history: ChatCompletionMessageParam[] = state.chatHistory
+      ? [...state.chatHistory, { role: 'user', content: text }]
+      : [
+          {
+            role: 'system',
+            content: CHAT_COMPLETION_PROMPT,
+          },
+          {
+            role: 'user',
+            content: text,
           },
         ];
     console.time('[Time] openai-chat-completion');

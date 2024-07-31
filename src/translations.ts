@@ -1,3 +1,4 @@
+import VoiceResponse from 'twilio/lib/twiml/VoiceResponse';
 import { LanguageCode } from './app.types';
 
 interface I18nResources {
