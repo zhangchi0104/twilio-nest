@@ -7,6 +7,7 @@ export enum SessionStatus {
 }
 export interface SessionState {
   status: SessionStatus;
+  languageCode: LanguageCode;
   chatHistory: ChatCompletionMessageParam[];
 }
 

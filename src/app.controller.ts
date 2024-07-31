@@ -36,26 +36,25 @@ export class AppController {
       JSON.stringify({ ...allState, [sessionId]: newState }),
     );
     const voiceResponse = new VoiceResponse();
-    if (newState.status === SessionStatus.COMPLETED) {
-      voiceResponse.say('Thank you for your response. Goodbye!');
-      voiceResponse.hangup();
-    } else if (newState.status === SessionStatus.PENDING_FOR_MORE_INFO) {
-      voiceResponse.say(
-        'Thank you for your response. Do you have any things you want to add?',
-      );
-      voiceResponse.record({
-        timeout: 3,
-        playBeep: true,
-        finishOnKey: '#',
-        action:
-          process.env.TWILIO_WEBHOOK_URL + `/${sessionId}/recording-completed`,
-        method: 'POST',
-        recordingStatusCallback:
-          process.env.TWILIO_WEBHOOK_URL +
-          `/${sessionId}/recording-status-changed`,
-        // recordingStatusCallbackEvent: 'completed',
-      });
-    }
+    voiceResponse.say(
+      {
+        language: newState.languageCode,
+      },
+      newState.nextQuestion || 'Thank you for your response',
+    );
+    voiceResponse.record({
+      timeout: 1,
+      playBeep: true,
+      finishOnKey: '#',
+      action:
+        process.env.TWILIO_WEBHOOK_URL + `/${sessionId}/recording-completed`,
+      method: 'POST',
+      recordingStatusCallback:
+        process.env.TWILIO_WEBHOOK_URL +
+        `/${sessionId}/recording-status-changed`,
+      // recordingStatusCallbackEvent: 'completed',
+    });
+
     return voiceResponse.toString();
   }
 
@@ -77,6 +76,7 @@ export class AppController {
       JSON.stringify({
         '123456': {
           status: 'dialed',
+          languageCode: dto.languageCode,
         },
       }),
     );

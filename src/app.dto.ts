@@ -6,7 +6,6 @@ export class DiaRequestDto {
   @IsNotEmpty()
   phoneNumber: string;
 
-  @Optional()
   @IsEnum(LanguageCode)
   languageCode: LanguageCode = LanguageCode.en_US;
 }

@@ -8,7 +8,7 @@ export const translations: Record<LanguageCode, I18nResources> = {
     greeting: 'Hi, This is call from ever young AI. How are you today?',
   },
   'zh-CN': {
-    greeting: '你好，这是来自Everyoung AI的电话。您今天好吗?',
+    greeting: '你好，这是来自Ever young AI的电话。您今天好吗?',
   },
   'ja-JP': {
     greeting:

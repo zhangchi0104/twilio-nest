@@ -23,9 +23,10 @@ export class TwilioService {
   public async makeCall(
     sessionId: string,
     phoneNumber: string,
-    languageCode: LanguageCode = LanguageCode.en_US,
+    languageCode: LanguageCode,
   ) {
     const response = new VoiceResposne();
+    console.log(languageCode);
     response.say(
       {
         language: languageCode,
@@ -47,10 +48,7 @@ export class TwilioService {
     });
   }
 
-  async handleRecodingCompleted(
-    state: SessionState,
-    recordingUrl: string,
-  ): Promise<SessionState> {
+  async handleRecodingCompleted(state: SessionState, recordingUrl: string) {
     let recordingPromise = await fetch(recordingUrl, {
       headers: {
         Authorization: this.basicAuthHeader,
@@ -63,7 +61,7 @@ export class TwilioService {
         '[TwilioService::handleRecordingCompleted] Recording File Status',
         recordingPromise.status,
       );
-      await this.sleepAsync(200);
+      await this.sleepAsync(100);
       recordingPromise = await fetch(recordingUrl, {
         headers: {
           Authorization: this.basicAuthHeader,
@@ -76,6 +74,10 @@ export class TwilioService {
       file: await toFile(recordingPromise, 'recording.wav'),
       model: 'whisper-1',
     });
+    console.log(
+      '[TwilioService::handleRecordingCompleted] Transcription',
+      transcription.text,
+    );
     console.timeEnd('[Time] whisper-transcription');
     const history: ChatCompletionMessageParam[] = state.chatHistory
       ? [...state.chatHistory, { role: 'user', content: transcription.text }]
@@ -98,14 +100,19 @@ export class TwilioService {
     const gptMsg = response.choices[0]
       .message satisfies ChatCompletionMessageParam;
     history.push(gptMsg);
+    console.log(
+      '[TwilioService::handleRecordingCompleted] GPT Response',
+      gptMsg,
+    );
     return {
       ...state,
       chatHistory: history,
+      nextQuestion: gptMsg.content,
       status:
         state.status === SessionStatus.DIALED
           ? SessionStatus.PENDING_FOR_MORE_INFO
           : SessionStatus.COMPLETED,
-    } as SessionState;
+    };
   }
 
   private get basicAuthHeader() {
