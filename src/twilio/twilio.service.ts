@@ -120,7 +120,7 @@ export class TwilioService {
   }
 
   async handleGatherCompleted(state: SessionState, text: string) {
-    console.timeEnd('[Time] whisper-transcription');
+    console.log('[TwilioService::handleGatherCompleted] User Response:', text);
     const history: ChatCompletionMessageParam[] = state.chatHistory
       ? [...state.chatHistory, { role: 'user', content: text }]
       : [
